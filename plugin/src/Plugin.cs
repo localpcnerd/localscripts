@@ -1,13 +1,11 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
 
-// TODO: Change 'YourName' to your name. 
-namespace YourName
+namespace localscripts
 {
-    // TODO: Change 'YourPlugin' to the name of your plugin
     [BepInAutoPlugin]
     [BepInProcess("h3vr.exe")]
-    public partial class YourPlugin : BaseUnityPlugin
+    public partial class localscripts : BaseUnityPlugin
     {
         /* == Quick Start == 
          * Your plugin class is a Unity MonoBehaviour that gets added to a global game object when the game starts.
@@ -26,7 +24,7 @@ namespace YourName
             Logger = base.Logger;
             
             // Your plugin's ID, Name, and Version are available here.
-            Logger.LogMessage($"Hello, world! Sent from {Id} {Name} {Version}");
+            Logger.LogMessage($"localscripts plugin loaded. Version {Version}");
         }
         
         // The line below allows access to your plugin's logger from anywhere in your code, including outside of this file.
