@@ -8,7 +8,7 @@ using FistVR;
 
 public class EnableObjOnSkinSelect : MonoBehaviour {
 
-    [HeaderAttribute("Hover Over Variables To Read The Tooltips!!!")]
+    [Header("Hover Over Variables To Read The Tooltips!!!")]
 
     [Tooltip("Your weapon object.")] public GameObject ModularWeapon;
     [Tooltip("ID of the skin to enable/disable objects on.")] public string skinID;
