@@ -43,6 +43,15 @@ namespace localscripts
 
         [Header("Fire Selector")]
         public bool ModifyFireSelector;
+        public Transform FireSelector;
+        [Tooltip("Interp style specifically for closed bolt weapons + handguns. Blame anton's dumbass for making these two separate.")] public FVRPhysicalObject.InterpStyle FireSelectorInterp;
+        [Tooltip("Interp style specifically for open bolt weapons. Blame anton's dumbass for making these two separate.")] public OpenBoltReceiver.InterpStyle FireSelectorInterpOpenBolt;
+        public FVRPhysicalObject.Axis FireSelectorAxis;
+        [Tooltip("Axis specifically for open bolt weapons. Blame anton's dumbass for making these two separate.")] public OpenBoltReceiver.Axis FireSelectorAxisOpenBolt;
+        public ClosedBoltWeapon.FireSelectorMode[] FireSelectorModesClosedBolt;
+        public OpenBoltReceiver.FireSelectorMode[] FireSelectorModesOpenBolt;
+        public Handgun.FireSelectorMode[] FireSelectorModesHandgun;
+        public int DefaultSelectorMode;
 
         private Handgun hg;
         private OpenBoltReceiver obr;
@@ -62,6 +71,16 @@ namespace localscripts
         private float oldresetthreshold;
         private float olddualstagethreshold;
 
+        private Transform oldfiresel;
+        private FVRPhysicalObject.Axis oldselectoraxis;
+        private OpenBoltReceiver.Axis oldselectoraxisOB;
+        private FVRPhysicalObject.InterpStyle oldselectorinterp;
+        private OpenBoltReceiver.InterpStyle oldselectorinterpOB;
+        private int olddefaultmode;
+        private ClosedBoltWeapon.FireSelectorMode[] oldselectormodeCBW;
+        private OpenBoltReceiver.FireSelectorMode[] oldselectormodesOB;
+        private Handgun.FireSelectorMode[] oldselectormodesHG;
+
         public enum WeaponTypeEnum
         {
             Handgun,
@@ -76,25 +95,47 @@ namespace localscripts
             {
                 case WeaponTypeEnum.Handgun:
                     hg = GetComponent<Handgun>();
+
                     oldtrig = hg.Trigger;
                     oldTriggerInterp = hg.TriggerInterp;
                     oldresetthreshold = hg.TriggerResetThreshold;
                     oldfirethres = hg.TriggerBreakThreshold;
+
+                    oldfiresel = hg.FireSelector;
+                    oldselectoraxis = hg.FireSelectorAxis;
+                    oldselectorinterp = hg.FireSelectorInterpStyle;
+                    oldselectormodesHG = hg.FireSelectorModes;
+                    olddefaultmode = hg.m_fireSelectorMode;
+
                     break;
                 case WeaponTypeEnum.ClosedBolt:
                     cbw = GetComponent<ClosedBoltWeapon>();
+
                     oldtrig = cbw.Trigger;
                     oldTriggerInterp = cbw.TriggerInterpStyle;
                     oldresetthreshold = cbw.TriggerResetThreshold;
                     oldfirethres = cbw.TriggerFiringThreshold;
                     olddualstagethreshold = cbw.TriggerDualStageThreshold;
+
+                    oldfiresel = cbw.FireSelectorSwitch;
+                    oldselectoraxis = cbw.FireSelector_Axis;
+                    oldselectorinterp = cbw.FireSelector_InterpStyle;
+                    oldselectormodeCBW = cbw.FireSelector_Modes;
+                    olddefaultmode = cbw.m_fireSelectorMode;
                     break;
                 case WeaponTypeEnum.OpenBolt:
                     obr = GetComponent<OpenBoltReceiver>();
+
                     oldtrig = obr.Trigger;
                     oldTriggerInterpOB = obr.TriggerInterpStyle;
                     oldfirethres = obr.TriggerFiringThreshold;
                     oldresetthreshold = obr.TriggerResetThreshold;
+
+                    oldfiresel = obr.FireSelectorSwitch;
+                    oldselectoraxisOB = obr.FireSelector_Axis;
+                    oldselectorinterpOB = obr.FireSelector_InterpStyle;
+                    oldselectormodesOB = obr.FireSelector_Modes;
+                    olddefaultmode = obr.m_fireSelectorMode;
                     break;
                 default:
                     localscripts.Logger.LogError("ModifyOnModularPartsAttached, Start: No weapon type assigned. please set one.");
@@ -152,6 +193,11 @@ namespace localscripts
                 {
                     UpdateTrigger(true);
                 }
+
+                if(ModifyFireSelector)
+                {
+                    ModifySelector(true);
+                }
             }
             else
             {
@@ -180,6 +226,11 @@ namespace localscripts
                 if(ModifyTrigger)
                 {
                     UpdateTrigger(false);
+                }
+
+                if (ModifyFireSelector)
+                {
+                    ModifySelector(false);
                 }
             }
         }
@@ -238,7 +289,71 @@ namespace localscripts
                         obr.TriggerResetThreshold = oldresetthreshold;
                         break;
                     default:
-                        localscripts.Logger.LogError("ModifyOnModularPartsAttached, UpdateTrigger: No weapon type assigned. please set one.");
+                        localscripts.Logger.LogError("ModifyOnModularPartsAttached, ModifyTrigger: No weapon type assigned. please set one.");
+                        break;
+                }
+            }
+        }
+
+        public void ModifySelector(bool add)
+        {
+            if(!add)
+            {
+                switch (WeaponType) //revert
+                {
+                    case WeaponTypeEnum.Handgun:
+                        hg.FireSelector = oldfiresel;
+                        hg.FireSelectorAxis = oldselectoraxis;
+                        hg.FireSelectorInterpStyle = oldselectorinterp;
+                        hg.FireSelectorModes = oldselectormodesHG;
+                        hg.m_fireSelectorMode = olddefaultmode;
+                        break;
+                    case WeaponTypeEnum.ClosedBolt:
+                        cbw.FireSelectorSwitch = oldfiresel;
+                        cbw.FireSelector_Axis = oldselectoraxis;
+                        cbw.FireSelector_InterpStyle = oldselectorinterp;
+                        cbw.FireSelector_Modes = oldselectormodeCBW;
+                        cbw.m_fireSelectorMode = olddefaultmode;
+                        break;
+                    case WeaponTypeEnum.OpenBolt:
+                        obr.FireSelectorSwitch = oldfiresel;
+                        obr.FireSelector_Axis = oldselectoraxisOB;
+                        obr.FireSelector_InterpStyle = oldselectorinterpOB;
+                        obr.FireSelector_Modes = oldselectormodesOB;
+                        obr.m_fireSelectorMode = olddefaultmode;
+                        break;
+                    default:
+                        localscripts.Logger.LogError("ModifyOnModularPartsAttached, ModifySelector: No weapon type assigned. please set one.");
+                        break;
+                }
+            }
+            else
+            {
+                switch (WeaponType) //change
+                {
+                    case WeaponTypeEnum.Handgun:
+                        hg.FireSelector = FireSelector;
+                        hg.FireSelectorAxis = FireSelectorAxis;
+                        hg.FireSelectorInterpStyle = FireSelectorInterp;
+                        hg.FireSelectorModes = FireSelectorModesHandgun;
+                        hg.m_fireSelectorMode = DefaultSelectorMode;
+                        break;
+                    case WeaponTypeEnum.ClosedBolt:
+                        cbw.FireSelectorSwitch = FireSelector;
+                        cbw.FireSelector_Axis = FireSelectorAxis;
+                        cbw.FireSelector_InterpStyle = FireSelectorInterp;
+                        cbw.FireSelector_Modes = FireSelectorModesClosedBolt;
+                        cbw.m_fireSelectorMode = DefaultSelectorMode;
+                        break;
+                    case WeaponTypeEnum.OpenBolt:
+                        obr.FireSelectorSwitch = FireSelector;
+                        obr.FireSelector_Axis = FireSelectorAxisOpenBolt;
+                        obr.FireSelector_InterpStyle = FireSelectorInterpOpenBolt;
+                        obr.FireSelector_Modes = FireSelectorModesOpenBolt;
+                        obr.m_fireSelectorMode = DefaultSelectorMode;
+                        break;
+                    default:
+                        localscripts.Logger.LogError("ModifyOnModularPartsAttached, ModifySelector: No weapon type assigned. please set one.");
                         break;
                 }
             }
